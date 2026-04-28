@@ -86,47 +86,42 @@
     }
 
     async function buscar() {
-        const query = document.getElementById('busq').value;
-        const panel = document.getElementById('resultados-busqueda');
+    const query = document.getElementById('busq').value.toLowerCase();
+    const panel = document.getElementById('resultados-busqueda');
+    
+    panel.innerHTML = "<p>Buscando coincidencias...</p>";
+
+    try {
+        const response = await fetch(SCRIPT_URL, {
+            method: 'POST',
+            body: JSON.stringify({ action: "consultar", query: query })
+        });
+        const res = await response.json();
         
-        if(query.length < 3) { alert("Escribe al menos 3 letras"); return; }
-        
-        panel.innerHTML = "<p>Buscando...</p>";
-
-        try {
-            const response = await fetch(SCRIPT_URL, {
-                method: 'POST',
-                body: JSON.stringify({ action: "consultar", query: query })
-            });
-            const res = await response.json();
-            
-            if (res.data.length === 0) {
-                panel.innerHTML = "<p class='red-text'>No se encontraron resultados.</p>";
-                return;
-            }
-
-            // Crear tabla de resultados
-            let tabla = `<table class='striped highlight responsive-table'>
-                <thead>
-                    <tr><th>Asociado</th><th>Celular</th><th>Estudiante</th><th>Grado/Sec</th></tr>
-                </thead>
-                <tbody>`;
-            
-            res.data.forEach(fila => {
-                tabla += `<tr>
-                    <td><b>${fila[1]}</b></td>
-                    <td>${fila[2]}</td>
-                    <td>${fila[3]}</td>
-                    <td>${fila[4]} ${fila[6]}</td>
-                </tr>`;
-            });
-            
-            tabla += "</tbody></table>";
-            panel.innerHTML = tabla;
-
-        } catch (e) {
-            panel.innerHTML = "<p class='red-text'>Error al conectar. Verifica que implementaste el Script como 'Cualquier persona'.</p>";
+        if (!res.data || res.data.length === 0) {
+            panel.innerHTML = "<p class='red-text'>No se encontraron asociados con ese nombre o apellido.</p>";
+            return;
         }
+
+        let html = `<ul class='collection with-header'>
+                        <li class='collection-header'><h5>Resultados</h5></li>`;
+        
+        res.data.forEach(fila => {
+            html += `<li class='collection-item'>
+                        <span class='title'><b>${fila[1]}</b></span>
+                        <p>Cel: ${fila[2]} <br>
+                           Estudiante: ${fila[3]} - ${fila[4]} ${fila[6]}
+                        </p>
+                     </li>`;
+        });
+        
+        html += "</ul>";
+        panel.innerHTML = html;
+
+    } catch (e) {
+        panel.innerHTML = "<p class='red-text'>Error de conexión.</p>";
+    }
+}
     }
 </script>
 </body>
