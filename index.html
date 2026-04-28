@@ -28,7 +28,7 @@
 
     <nav>
         <div class="nav-wrapper container">
-            <a href="#" class="brand-logo">ADPRINT GESTIÓN</a>
+            <a href="#" class="brand-logo">APAFA SDG-YUNGAY</a>
         </div>
     </nav>
 
@@ -72,49 +72,62 @@
     </div>
 
     <script>
-        // REEMPLAZA ESTA URL POR LA TUYA DE GOOGLE APPS SCRIPT
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwAsC9vngXudNtbPwGuQASr-mmMO76gbeWhZvs0SsHZcXDGMDZyr4_eboPX9tEekKw/exec";
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwJAucTrReXkZDUSUmFI9VqVMISgt2rKFjUoB8xUkcK3PCxM4s6nzmUkVJIGksRe-3G/exec"; // <--- PEGA TU URL AQUÍ
 
-        function ver(id) {
-            document.getElementById('menu-principal').style.display = 'none';
-            document.getElementById(id).style.display = 'block';
-        }
+    function ver(id) {
+        document.getElementById('menu-principal').style.display = 'none';
+        document.getElementById(id).style.display = 'block';
+    }
 
-        function volver() {
-            document.querySelectorAll('.container-form').forEach(f => f.style.display = 'none');
-            document.getElementById('menu-principal').style.display = 'flex';
-        }
+    function volver() {
+        document.querySelectorAll('.container-form').forEach(f => f.style.display = 'none');
+        document.getElementById('menu-principal').style.display = 'flex';
+        document.getElementById('resultados-busqueda').innerHTML = ""; 
+    }
 
-        async function guardar() {
-            const btn = event.target;
-            btn.disabled = true;
-            btn.innerText = "Enviando...";
+    async function buscar() {
+        const query = document.getElementById('busq').value;
+        const panel = document.getElementById('resultados-busqueda');
+        
+        if(query.length < 3) { alert("Escribe al menos 3 letras"); return; }
+        
+        panel.innerHTML = "<p>Buscando...</p>";
 
-            const datos = {
-                action: "nuevo",
-                nombre: document.getElementById('nom').value,
-                celular: document.getElementById('cel').value,
-                estudiante: document.getElementById('est').value,
-                grado: document.getElementById('gra').value,
-                nivel: document.getElementById('niv').value,
-                seccion: document.getElementById('sec').value
-            };
-
-            try {
-                // Enviamos los datos a Google Sheets
-                await fetch(SCRIPT_URL, {
-                    method: 'POST',
-                    mode: 'no-cors', // Necesario para Google Apps Script
-                    body: JSON.stringify(datos)
-                });
-                alert("¡Éxito! Datos registrados en la hoja.");
-                location.reload(); // Recarga para limpiar
-            } catch (e) {
-                alert("Error al conectar con Google.");
-                btn.disabled = false;
-                btn.innerText = "Guardar en Sheets";
+        try {
+            const response = await fetch(SCRIPT_URL, {
+                method: 'POST',
+                body: JSON.stringify({ action: "consultar", query: query })
+            });
+            const res = await response.json();
+            
+            if (res.data.length === 0) {
+                panel.innerHTML = "<p class='red-text'>No se encontraron resultados.</p>";
+                return;
             }
+
+            // Crear tabla de resultados
+            let tabla = `<table class='striped highlight responsive-table'>
+                <thead>
+                    <tr><th>Asociado</th><th>Celular</th><th>Estudiante</th><th>Grado/Sec</th></tr>
+                </thead>
+                <tbody>`;
+            
+            res.data.forEach(fila => {
+                tabla += `<tr>
+                    <td><b>${fila[1]}</b></td>
+                    <td>${fila[2]}</td>
+                    <td>${fila[3]}</td>
+                    <td>${fila[4]} ${fila[6]}</td>
+                </tr>`;
+            });
+            
+            tabla += "</tbody></table>";
+            panel.innerHTML = tabla;
+
+        } catch (e) {
+            panel.innerHTML = "<p class='red-text'>Error al conectar. Verifica que implementaste el Script como 'Cualquier persona'.</p>";
         }
-    </script>
+    }
+</script>
 </body>
 </html>
