@@ -107,12 +107,13 @@
     const query = document.getElementById('busq').value.toLowerCase();
     const panel = document.getElementById('resultados-busqueda');
     
+    // Si el usuario no escribe nada, avisamos
     if (query.length < 3) { 
-        alert("Por favor, escribe al menos 3 letras del apellido o nombre"); 
+        alert("Escribe al menos 3 letras para buscar."); 
         return; 
     }
     
-    panel.innerHTML = "<p>Buscando en la base de datos...</p>";
+    panel.innerHTML = "<p>Buscando en la base de datos de Asociados...</p>";
 
     try {
         const response = await fetch(SCRIPT_URL, {
@@ -123,31 +124,31 @@
         const res = await response.json();
         
         if (!res.data || res.data.length === 0) {
-            panel.innerHTML = "<p style='color:red;'>No se encontró ningún asociado con ese nombre.</p>";
+            panel.innerHTML = "<p style='color:red;'>No se encontró nadie con ese apellido o nombre.</p>";
             return;
         }
 
-        // ESTO ES LO QUE MUESTRA LOS DATOS EN PANTALLA
-        let html = "<ul class='collection with-header'>";
-        html += "<li class='collection-header'><h5>Resultados Encontrados</h5></li>";
+        // Aquí es donde "pasa algo": creamos la lista de resultados
+        let html = "<ul class='collection with-header' style='text-align:left;'>";
+        html += "<li class='collection-header'><h5>Asociados Encontrados</h5></li>";
         
-        res.data.forEach(fila => {
+        res.data.forEach(asociado => {
             html += `
-            <li class='collection-item' style='text-align:left;'>
-                <span class='title'><b>👤 ASOCIADO: ${fila[1]}</b></span>
-                <p>📱 Celular: ${fila[2]} <br>
-                   🎓 Estudiante: ${fila[3]} <br>
-                   📍 Grado: ${fila[4]} | Sección: ${fila[6]}
+            <li class='collection-item'>
+                <span class='title'><b>👤 ${asociado[1]}</b></span>
+                <p>📱 Celular: ${asociado[2]} <br>
+                   🎓 Estudiante: ${asociado[3]} <br>
+                   📍 Grado/Sección: ${asociado[4]} ${asociado[6]}
                 </p>
             </li>`;
         });
         
         html += "</ul>";
-        panel.innerHTML = html;
+        panel.innerHTML = html; // Esto quita el mensaje de "conectando" y pone los datos
 
     } catch (e) {
-        panel.innerHTML = "<p style='color:red;'>Error crítico: No se pudo recibir respuesta de Google.</p>";
+        panel.innerHTML = "<p style='color:red;'>Error: No se pudo conectar con el servidor de Google.</p>";
     }
-}</script>
+}}</script>
 </body>
 </html>
