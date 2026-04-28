@@ -72,7 +72,8 @@
     </div>
 
     <script>
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzcm0oH2h5vhb4ZkJHcX2PXdd4ohUCJLvt_cIPAlPzqOVDyLW5gLCIiY6km-fUlBaJV/exec"; // <--- PEGA TU URL AQUÍ
+    // 1. REEMPLAZA ESTO CON TU URL DE IMPLEMENTACIÓN REAL
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwA-KUpa9lsbpmaiMpkcwavBkI54BB9KceU08IopfUsF9rj4_BRM057dwfI6oLCWivV/exec";
 
     function ver(id) {
         document.getElementById('menu-principal').style.display = 'none';
@@ -85,43 +86,63 @@
         document.getElementById('resultados-busqueda').innerHTML = ""; 
     }
 
-    async function buscar() {
-    const query = document.getElementById('busq').value.toLowerCase();
-    const panel = document.getElementById('resultados-busqueda');
-    
-    panel.innerHTML = "<p>Buscando coincidencias...</p>";
-
-    try {
-        const response = await fetch(SCRIPT_URL, {
-            method: 'POST',
-            body: JSON.stringify({ action: "consultar", query: query })
-        });
-        const res = await response.json();
-        
-        if (!res.data || res.data.length === 0) {
-            panel.innerHTML = "<p class='red-text'>No se encontraron asociados con ese nombre o apellido.</p>";
-            return;
-        }
-
-        let html = `<ul class='collection with-header'>
-                        <li class='collection-header'><h5>Resultados</h5></li>`;
-        
-        res.data.forEach(fila => {
-            html += `<li class='collection-item'>
-                        <span class='title'><b>${fila[1]}</b></span>
-                        <p>Cel: ${fila[2]} <br>
-                           Estudiante: ${fila[3]} - ${fila[4]} ${fila[6]}
-                        </p>
-                     </li>`;
-        });
-        
-        html += "</ul>";
-        panel.innerHTML = html;
-
-    } catch (e) {
-        panel.innerHTML = "<p class='red-text'>Error de conexión.</p>";
+    // FUNCIÓN PARA GUARDAR NUEVO
+    async function guardar() {
+        const d = { 
+            action: "nuevo", 
+            nombre: document.getElementById('nom').value, 
+            celular: document.getElementById('cel').value,
+            estudiante: document.getElementById('est').value,
+            grado: document.getElementById('gra').value,
+            nivel: document.getElementById('niv').value,
+            seccion: document.getElementById('sec').value
+        };
+        await fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(d) });
+        alert("Asociado registrado correctamente");
+        volver();
     }
-}
+
+    // FUNCIÓN PARA BUSCAR Y MOSTRAR DATOS
+    async function buscar() {
+        const query = document.getElementById('busq').value.toLowerCase();
+        const panel = document.getElementById('resultados-busqueda');
+        
+        if (query.length < 3) { alert("Escribe al menos 3 letras"); return; }
+        panel.innerHTML = "<div class='progress'><div class='indeterminate'></div></div>";
+
+        try {
+            const response = await fetch(SCRIPT_URL, {
+                method: 'POST',
+                body: JSON.stringify({ action: "consultar", query: query })
+            });
+            const res = await response.json();
+            
+            if (!res.data || res.data.length === 0) {
+                panel.innerHTML = "<p class='red-text'>No se encontraron resultados.</p>";
+                return;
+            }
+
+            // Generar la lista de resultados con datos completos
+            let html = "<ul class='collection with-header'>";
+            html += "<li class='collection-header'><h6>Asociados Encontrados</h6></li>";
+            
+            res.data.forEach(asoc => {
+                html += `
+                <li class='collection-item' style='text-align: left;'>
+                    <span class='title'><b>👤 ${asoc[1]}</b></span>
+                    <p>📱 Cel: ${asoc[2]} <br>
+                       🎓 Estudiante: ${asoc[3]} <br>
+                       📍 ${asoc[4]} - ${asoc[6]} (${asoc[5]})
+                    </p>
+                </li>`;
+            });
+            
+            html += "</ul>";
+            panel.innerHTML = html;
+
+        } catch (e) {
+            panel.innerHTML = "<p class='red-text'>Error de conexión al servidor.</p>";
+        }
     }
 </script>
 </body>
