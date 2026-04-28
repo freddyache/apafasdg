@@ -74,31 +74,26 @@
 
 <script>
     // 1. REEMPLAZA ESTA URL CON TU URL DE /EXEC
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbweaXy-0xO8D5hlVoweSFlm6YsZpnAIfARiO2A4VGym4ziuWBPNNYv1OXfse1natg8B/exec";
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzDhPTStX4AU_KMaI20zY1r4POMpXF_nc77b-vFJbfXOYzCdAv7cLK9hVgKakuoZg3v/exec";
 
-    // Función para mostrar los formularios
     function ver(id) {
-        console.log("Mostrando:", id);
         document.getElementById('menu-principal').style.display = 'none';
         document.getElementById(id).style.display = 'block';
     }
 
-    // Función para volver al menú
     function volver() {
-        document.getElementById('form-nuevo').style.display = 'none';
-        document.getElementById('form-consulta').style.display = 'none';
+        document.querySelectorAll('.container-form').forEach(f => f.style.display = 'none');
         document.getElementById('menu-principal').style.display = 'flex';
         document.getElementById('resultados-busqueda').innerHTML = "";
     }
 
-    // Función para BUSCAR (Conexión real)
+    // BUSCAR Y MOSTRAR RELACIÓN
     async function buscar() {
         const query = document.getElementById('busq').value.toLowerCase();
         const panel = document.getElementById('resultados-busqueda');
         
-        if (query.length < 3) { alert("Escribe al menos 3 letras"); return; }
-        
-        panel.innerHTML = "<p style='color:blue;'>Conectando con Google Sheets...</p>";
+        if (query.length < 3) { alert("Escribe al menos 3 letras del apellido"); return; }
+        panel.innerHTML = "<p>Buscando en la hoja de Google...</p>";
 
         try {
             const response = await fetch(SCRIPT_URL, {
@@ -107,47 +102,43 @@
             });
             const res = await response.json();
             
-            if (!res.data || res.data.length === 0) {
-                panel.innerHTML = "<p class='red-text'>No se encontraron asociados.</p>";
+            if (res.data.length === 0) {
+                panel.innerHTML = "<p class='red-text'>No se encontraron coincidencias.</p>";
                 return;
             }
 
-            let html = "<ul class='collection with-header'><li class='collection-header'><h6>Seleccione para ver detalles:</h6></li>";
-            res.data.forEach(fila => {
-                const datosStr = encodeURIComponent(JSON.stringify(fila));
+            let html = "<ul class='collection with-header'><li class='collection-header'><h6>Resultados:</h6></li>";
+            res.data.forEach((asoc) => {
+                const datosJson = encodeURIComponent(JSON.stringify(asoc));
                 html += `<li class='collection-item'>
-                            <a href='#!' onclick="verDetalle('${datosStr}')" style='color: #000080; font-weight: bold;'>
-                                👤 ${fila[1]} <i class='material-icons right'>chevron_right</i>
+                            <a href='#!' onclick="verFicha('${datosJson}')" style='color:#000080; font-weight:bold;'>
+                                👤 ${asoc[1]} <i class='material-icons right'>visibility</i>
                             </a>
                          </li>`;
             });
             html += "</ul>";
             panel.innerHTML = html;
-        } catch (e) {
-            panel.innerHTML = "<p class='red-text'>Error: Revisa la URL del SCRIPT_URL.</p>";
-        }
+        } catch (e) { panel.innerHTML = "<p class='red-text'>Error de conexión con el script.</p>"; }
     }
 
-    // Función para mostrar DATOS COMPLETOS
-    function verDetalle(datosStr) {
-        const fila = JSON.parse(decodeURIComponent(datosStr));
+    // MOSTRAR TODOS LOS DATOS
+    function verFicha(datos) {
+        const fila = JSON.parse(decodeURIComponent(datos));
         document.getElementById('resultados-busqueda').innerHTML = `
             <div class='card blue-grey darken-1'>
                 <div class='card-content white-text' style='text-align:left;'>
                     <span class='card-title'>Datos del Asociado</span>
-                    <p><b>Nombre:</b> ${fila[1]}</p>
+                    <p><b>Asociado:</b> ${fila[1]}</p>
                     <p><b>Celular:</b> ${fila[2]}</p>
                     <hr>
                     <p><b>Estudiante:</b> ${fila[3]}</p>
-                    <p><b>Grado:</b> ${fila[4]} | <b>Sección:</b> ${fila[6]}</p>
+                    <p><b>Grado/Sección:</b> ${fila[4]} - ${fila[6]}</p>
+                    <p><b>Nivel:</b> ${fila[5]}</p>
                 </div>
-                <div class='card-action'>
-                    <a href='#!' onclick='volver()'>CERRAR</a>
-                </div>
+                <div class='card-action'><a href='#!' onclick='volver()'>Cerrar</a></div>
             </div>`;
     }
 
-    // Función para GUARDAR NUEVO
     async function guardar() {
         const d = {
             action: "nuevo",
@@ -159,7 +150,7 @@
             seccion: document.getElementById('sec').value
         };
         await fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(d) });
-        alert("Asociado Registrado");
+        alert("Guardado en Google Sheets");
         location.reload();
     }
 </script>
