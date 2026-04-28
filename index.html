@@ -73,7 +73,7 @@
     </div>
 
         <script>
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz4qdc3X2b0MzsKnqVXDO3IyVDbhDyKFuD9lo3yFX1dNp_PIzlGLND9b1mpn8kKIvLh/exec"; // REEMPLAZA ESTO
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyZaRvRFtTEi6MCw0X-ixMx3sK01nkH52m_pmgFXCV1pa8yJ587Lp2B9Tc50LB7dCg0/exec"; // <--- Pon tu URL de /exec aquí
 
     function ver(id) {
         document.getElementById('menu-principal').style.display = 'none';
@@ -81,19 +81,18 @@
     }
 
     function volver() {
-        document.getElementById('form-nuevo').style.display = 'none';
-        document.getElementById('form-consulta').style.display = 'none';
+        document.querySelectorAll('.container-form').forEach(f => f.style.display = 'none');
         document.getElementById('menu-principal').style.display = 'flex';
         document.getElementById('resultados-busqueda').innerHTML = "";
     }
 
-    // BUSCAR POR APELLIDO Y MOSTRAR RELACIÓN
     async function buscar() {
         const query = document.getElementById('busq').value.toLowerCase();
         const panel = document.getElementById('resultados-busqueda');
         
         if (query.length < 3) { alert("Escribe al menos 3 letras"); return; }
-        panel.innerHTML = "<p>Buscando asociados...</p>";
+        
+        panel.innerHTML = "<p style='color: blue;'>⏳ Buscando asociados...</p>";
 
         try {
             const response = await fetch(SCRIPT_URL, {
@@ -102,51 +101,50 @@
             });
             const res = await response.json();
             
-            if (res.data.length === 0) {
-                panel.innerHTML = "<p class='red-text'>No se encontraron coincidencias.</p>";
+            if (!res.data || res.data.length === 0) {
+                panel.innerHTML = "<p style='color:red;'>❌ No se encontraron resultados.</p>";
                 return;
             }
 
-            // CREAR LISTA PARA SELECCIONAR
-            let html = "<ul class='collection with-header'><li class='collection-header'><h6>Seleccione un asociado:</h6></li>";
+            // CREAR LISTA DE RESULTADOS
+            let html = "<ul class='collection with-header'><li class='collection-header'><h6>Resultados (Toca uno para ver detalles)</h6></li>";
             res.data.forEach((asoc, index) => {
-                // Guardamos los datos en un atributo para leerlos al hacer clic
-                const datosStr = encodeURIComponent(JSON.stringify(asoc));
+                const asocData = encodeURIComponent(JSON.stringify(asoc));
                 html += `<li class='collection-item'>
-                            <a href='#' onclick="mostrarDetalle('${datosStr}')" style='color:black;'>
-                                <b>${asoc[1]}</b> <i class='material-icons right'>chevron_right</i>
+                            <a href='#!' onclick="verDetalle('${asocData}')" style='color: #000080; font-weight: bold;'>
+                                ${asoc[1]} <i class='material-icons right'>visibility</i>
                             </a>
                          </li>`;
             });
             html += "</ul>";
             panel.innerHTML = html;
 
-        } catch (e) { panel.innerHTML = "<p class='red-text'>Error de conexión.</p>"; }
+        } catch (e) {
+            panel.innerHTML = "<p style='color:red;'>⚠️ Error al conectar con Google Script.</p>";
+        }
     }
 
-    // MOSTRAR TODOS LOS DATOS EN PANTALLA
-    function mostrarDetalle(datosStr) {
-        const asoc = JSON.parse(decodeURIComponent(datosStr));
+    function verDetalle(dataEncoded) {
+        const asoc = JSON.parse(decodeURIComponent(dataEncoded));
         const panel = document.getElementById('resultados-busqueda');
         
         panel.innerHTML = `
             <div class='card blue-grey darken-1'>
-                <div class='card-content white-text'>
-                    <span class='card-title'>Datos Completos</span>
-                    <p><b>Nombre:</b> ${asoc[1]}</p>
-                    <p><b>Celular:</b> ${asoc[2]}</p>
+                <div class='card-content white-text' style='text-align: left;'>
+                    <span class='card-title'>Detalles del Asociado</span>
+                    <p><b>👤 Nombre:</b> ${asoc[1]}</p>
+                    <p><b>📱 Celular:</b> ${asoc[2]}</p>
                     <hr>
-                    <p><b>Estudiante:</b> ${asoc[3]}</p>
-                    <p><b>Grado:</b> ${asoc[4]} | <b>Sección:</b> ${asoc[6]}</p>
-                    <p><b>Nivel:</b> ${asoc[5]}</p>
+                    <p><b>🎓 Estudiante:</b> ${asoc[3]}</p>
+                    <p><b>📍 Grado:</b> ${asoc[4]} | <b>Sección:</b> ${asoc[6]}</p>
+                    <p><b>🏫 Nivel:</b> ${asoc[5]}</p>
                 </div>
                 <div class='card-action'>
-                    <a href='#' onclick='buscar()'>Regresar a la lista</a>
+                    <a href='#!' onclick='buscar()'>Regresar a la lista</a>
                 </div>
             </div>`;
     }
 
-    // GUARDAR NUEVO
     async function guardar() {
         const d = {
             action: "nuevo",
@@ -158,7 +156,7 @@
             seccion: document.getElementById('sec').value
         };
         await fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(d) });
-        alert("Asociado Guardado");
+        alert("Asociado Guardado con Éxito");
         location.reload();
     }
 </script>
