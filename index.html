@@ -1,1 +1,120 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ADPRINT - Sistema de Gestión</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <style>
+        :root { --azul-marino: #000080; --vibrante: #e91e63; }
+        body { background-color: #f5f5f5; }
+        nav { background-color: var(--azul-marino); }
+        .card-menu {
+            height: 140px; display: flex; align-items: center; justify-content: center;
+            flex-direction: column; color: white; font-weight: bold; border-radius: 15px;
+            cursor: pointer; transition: 0.3s; margin-bottom: 20px;
+        }
+        .card-menu:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.2); }
+        .btn-nuevo { background-color: #4caf50; }
+        .btn-asociado { background-color: #00bcd4; }
+        .btn-deuda { background-color: #ff9800; }
+        .btn-asistencia { background-color: var(--vibrante); }
+        .container-form { display: none; padding: 20px; margin-top: 20px; }
+        .brand-logo { font-weight: bold; font-size: 1.5rem !important; }
+    </style>
+</head>
+<body>
 
+    <nav>
+        <div class="nav-wrapper container">
+            <a href="#" class="brand-logo">ADPRINT GESTIÓN</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div id="menu-principal" class="row" style="margin-top: 40px;">
+            <div class="col s6 m3" onclick="ver('form-nuevo')">
+                <div class="card-menu btn-nuevo"><i class="material-icons large">person_add</i>NUEVO</div>
+            </div>
+            <div class="col s6 m3" onclick="ver('form-consulta')">
+                <div class="card-menu btn-asociado"><i class="material-icons large">search</i>ASOCIADO</div>
+            </div>
+            <div class="col s6 m3" onclick="ver('form-consulta')">
+                <div class="card-menu btn-deuda"><i class="material-icons large">account_balance_wallet</i>DEUDAS</div>
+            </div>
+            <div class="col s6 m3" onclick="ver('form-consulta')">
+                <div class="card-menu btn-asistencia"><i class="material-icons large">event_available</i>ASISTENCIA</div>
+            </div>
+        </div>
+
+        <div id="form-nuevo" class="container-form card-panel">
+            <h5>Registrar Nuevo Asociado</h5>
+            <div class="row">
+                <div class="input-field col s12"><input id="nom" type="text"><label>Nombre del Asociado</label></div>
+                <div class="input-field col s6"><input id="cel" type="number"><label>Celular</label></div>
+                <div class="input-field col s6"><input id="est" type="text"><label>Nombre Estudiante</label></div>
+                <div class="input-field col s4"><input id="gra" type="text"><label>Grado</label></div>
+                <div class="input-field col s4"><input id="niv" type="text"><label>Nivel</label></div>
+                <div class="input-field col s4"><input id="sec" type="text"><label>Sección</label></div>
+            </div>
+            <button class="btn green darken-2" onclick="guardar()">Guardar en Sheets</button>
+            <button class="btn grey" onclick="volver()">Regresar</button>
+        </div>
+
+        <div id="form-consulta" class="container-form card-panel">
+            <h5>Módulo de Consulta</h5>
+            <p>Búsqueda rápida por Nombre o Celular:</p>
+            <input id="busq" type="text" placeholder="Ej: Juan Perez...">
+            <button class="btn blue" onclick="alert('Funcionalidad de búsqueda conectando...')">Buscar</button>
+            <button class="btn grey" onclick="volver()">Regresar</button>
+        </div>
+    </div>
+
+    <script>
+        // REEMPLAZA ESTA URL POR LA TUYA DE GOOGLE APPS SCRIPT
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwAsC9vngXudNtbPwGuQASr-mmMO76gbeWhZvs0SsHZcXDGMDZyr4_eboPX9tEekKw/exec";
+
+        function ver(id) {
+            document.getElementById('menu-principal').style.display = 'none';
+            document.getElementById(id).style.display = 'block';
+        }
+
+        function volver() {
+            document.querySelectorAll('.container-form').forEach(f => f.style.display = 'none');
+            document.getElementById('menu-principal').style.display = 'flex';
+        }
+
+        async function guardar() {
+            const btn = event.target;
+            btn.disabled = true;
+            btn.innerText = "Enviando...";
+
+            const datos = {
+                action: "nuevo",
+                nombre: document.getElementById('nom').value,
+                celular: document.getElementById('cel').value,
+                estudiante: document.getElementById('est').value,
+                grado: document.getElementById('gra').value,
+                nivel: document.getElementById('niv').value,
+                seccion: document.getElementById('sec').value
+            };
+
+            try {
+                // Enviamos los datos a Google Sheets
+                await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'no-cors', // Necesario para Google Apps Script
+                    body: JSON.stringify(datos)
+                });
+                alert("¡Éxito! Datos registrados en la hoja.");
+                location.reload(); // Recarga para limpiar
+            } catch (e) {
+                alert("Error al conectar con Google.");
+                btn.disabled = false;
+                btn.innerText = "Guardar en Sheets";
+            }
+        }
+    </script>
+</body>
+</html>
