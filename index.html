@@ -72,83 +72,89 @@
     </div>
 
     <script>
-    // 1. REEMPLAZA ESTO CON TU URL DE IMPLEMENTACIÓN REAL
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz0cTGgvTusDx6fDnOaVlMbPpUy5jhq-P-antQDB-EsnZreHrO7Jbw60rbdz9obBw8/exec";
+    <script>
+    // PEGA AQUÍ TU URL DE EJECUCIÓN (la que termina en /exec)
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz8j6ut2VKRLGTRCUMh-IglWpEoRqADNNCcPHyZNzbu9dTv0kRBOrGDTtz52r6SpUg/exec";
 
+    // Función para abrir los formularios (Corregida)
     function ver(id) {
+        console.log("Abriendo sección:", id);
         document.getElementById('menu-principal').style.display = 'none';
         document.getElementById(id).style.display = 'block';
     }
 
+    // Función para regresar al menú
     function volver() {
-        document.querySelectorAll('.container-form').forEach(f => f.style.display = 'none');
+        document.getElementById('form-nuevo').style.display = 'none';
+        document.getElementById('form-consulta').style.display = 'none';
         document.getElementById('menu-principal').style.display = 'flex';
-        document.getElementById('resultados-busqueda').innerHTML = ""; 
+        document.getElementById('resultados-busqueda').innerHTML = "";
     }
 
-    // FUNCIÓN PARA GUARDAR NUEVO
+    // Función para Guardar
     async function guardar() {
-        const d = { 
-            action: "nuevo", 
-            nombre: document.getElementById('nom').value, 
+        const btn = event.target;
+        btn.disabled = true;
+        btn.innerText = "Guardando...";
+
+        const datos = {
+            action: "nuevo",
+            nombre: document.getElementById('nom').value,
             celular: document.getElementById('cel').value,
             estudiante: document.getElementById('est').value,
             grado: document.getElementById('gra').value,
             nivel: document.getElementById('niv').value,
             seccion: document.getElementById('sec').value
         };
-        await fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(d) });
-        alert("Asociado registrado correctamente");
-        volver();
-    }
 
-    // FUNCIÓN PARA BUSCAR Y MOSTRAR DATOS
-    async function buscar() {
-    const query = document.getElementById('busq').value.toLowerCase();
-    const panel = document.getElementById('resultados-busqueda');
-    
-    if (query.length < 3) { 
-        alert("Escribe al menos 3 letras para buscar."); 
-        return; 
-    }
-    
-    panel.innerHTML = "<p style='color: blue;'>Conectando con la base de datos de Google...</p>";
-
-    try {
-        // Esta es la parte que faltaba: la conexión real
-        const response = await fetch(SCRIPT_URL, {
-            method: 'POST',
-            body: JSON.stringify({ action: "consultar", query: query })
-        });
-        
-        const res = await response.json();
-        
-        if (!res.data || res.data.length === 0) {
-            panel.innerHTML = "<p style='color:red;'>No se encontró nadie con ese nombre o apellido.</p>";
-            return;
+        try {
+            await fetch(SCRIPT_URL, {
+                method: 'POST',
+                mode: 'no-cors',
+                body: JSON.stringify(datos)
+            });
+            alert("¡Asociado registrado con éxito!");
+            location.reload(); 
+        } catch (e) {
+            alert("Error al guardar.");
+            btn.disabled = false;
         }
-
-        // Generamos la lista de asociados encontrados
-        let html = "<ul class='collection with-header' style='text-align:left;'>";
-        html += "<li class='collection-header'><h6>Asociados Encontrados:</h6></li>";
-        
-        res.data.forEach(asoc => {
-            html += `
-            <li class='collection-item' style='border-bottom: 1px solid #ddd; padding: 10px;'>
-                <span style='color: #000080; font-weight: bold;'>👤 ${asoc[1]}</span><br>
-                <small>📱 Celular: ${asoc[2]} | 🎓 Estudiante: ${asoc[3]}</small><br>
-                <small>📍 ${asoc[4]} ${asoc[6]} (${asoc[5]})</small>
-            </li>`;
-        });
-        
-        html += "</ul>";
-        panel.innerHTML = html;
-
-    } catch (e) {
-        panel.innerHTML = "<p style='color:red;'>Error de conexión. Asegúrate de haber actualizado la URL del Script en la línea const SCRIPT_URL.</p>";
-        console.log(e);
     }
-}
-}}</script>
+
+    // Función para Buscar (Corregida para mostrar resultados)
+    async function buscar() {
+        const query = document.getElementById('busq').value.toLowerCase();
+        const panel = document.getElementById('resultados-busqueda');
+        
+        if (query.length < 3) { alert("Escribe al menos 3 letras."); return; }
+        
+        panel.innerHTML = "<p>Buscando...</p>";
+
+        try {
+            const response = await fetch(SCRIPT_URL, {
+                method: 'POST',
+                body: JSON.stringify({ action: "consultar", query: query })
+            });
+            const res = await response.json();
+            
+            if (!res.data || res.data.length === 0) {
+                panel.innerHTML = "<p class='red-text'>Sin resultados.</p>";
+                return;
+            }
+
+            let html = "<ul class='collection'>";
+            res.data.forEach(fila => {
+                html += `<li class='collection-item' style='text-align:left;'>
+                            <b>${fila[1]}</b><br>
+                            <small>Estudiante: ${fila[3]} | ${fila[4]} ${fila[6]}</small>
+                         </li>`;
+            });
+            html += "</ul>";
+            panel.innerHTML = html;
+        } catch (e) {
+            panel.innerHTML = "<p class='red-text'>Error de conexión.</p>";
+        }
+    }
+</script>
 </body>
 </html>
