@@ -72,21 +72,14 @@
         </div>
     </div>
 
-    <script>
-    <script>
-    // PEGA AQUÍ TU URL DE EJECUCIÓN (la que termina en /exec)
-    <script>
-    // PEGA AQUÍ TU URL DE EJECUCIÓN (la que termina en /exec)
-    const SCRIPT_URL = "TU_URL_DE_IMPLEMENTACION_AQUI";
+        <script>
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz4qdc3X2b0MzsKnqVXDO3IyVDbhDyKFuD9lo3yFX1dNp_PIzlGLND9b1mpn8kKIvLh/exec"; // REEMPLAZA ESTO
 
-    // Función para abrir los formularios (Corregida)
     function ver(id) {
-        console.log("Abriendo sección:", id);
         document.getElementById('menu-principal').style.display = 'none';
         document.getElementById(id).style.display = 'block';
     }
 
-    // Función para regresar al menú
     function volver() {
         document.getElementById('form-nuevo').style.display = 'none';
         document.getElementById('form-consulta').style.display = 'none';
@@ -94,44 +87,13 @@
         document.getElementById('resultados-busqueda').innerHTML = "";
     }
 
-    // Función para Guardar
-    async function guardar() {
-        const btn = event.target;
-        btn.disabled = true;
-        btn.innerText = "Guardando...";
-
-        const datos = {
-            action: "nuevo",
-            nombre: document.getElementById('nom').value,
-            celular: document.getElementById('cel').value,
-            estudiante: document.getElementById('est').value,
-            grado: document.getElementById('gra').value,
-            nivel: document.getElementById('niv').value,
-            seccion: document.getElementById('sec').value
-        };
-
-        try {
-            await fetch(SCRIPT_URL, {
-                method: 'POST',
-                mode: 'no-cors',
-                body: JSON.stringify(datos)
-            });
-            alert("¡Asociado registrado con éxito!");
-            location.reload(); 
-        } catch (e) {
-            alert("Error al guardar.");
-            btn.disabled = false;
-        }
-    }
-
-    // Función para Buscar (Corregida para mostrar resultados)
+    // BUSCAR POR APELLIDO Y MOSTRAR RELACIÓN
     async function buscar() {
         const query = document.getElementById('busq').value.toLowerCase();
         const panel = document.getElementById('resultados-busqueda');
         
-        if (query.length < 3) { alert("Escribe al menos 3 letras."); return; }
-        
-        panel.innerHTML = "<p>Buscando...</p>";
+        if (query.length < 3) { alert("Escribe al menos 3 letras"); return; }
+        panel.innerHTML = "<p>Buscando asociados...</p>";
 
         try {
             const response = await fetch(SCRIPT_URL, {
@@ -140,25 +102,65 @@
             });
             const res = await response.json();
             
-            if (!res.data || res.data.length === 0) {
-                panel.innerHTML = "<p class='red-text'>Sin resultados.</p>";
+            if (res.data.length === 0) {
+                panel.innerHTML = "<p class='red-text'>No se encontraron coincidencias.</p>";
                 return;
             }
 
-            let html = "<ul class='collection'>";
-            res.data.forEach(fila => {
-                html += `<li class='collection-item' style='text-align:left;'>
-                            <b>${fila[1]}</b><br>
-                            <small>Estudiante: ${fila[3]} | ${fila[4]} ${fila[6]}</small>
+            // CREAR LISTA PARA SELECCIONAR
+            let html = "<ul class='collection with-header'><li class='collection-header'><h6>Seleccione un asociado:</h6></li>";
+            res.data.forEach((asoc, index) => {
+                // Guardamos los datos en un atributo para leerlos al hacer clic
+                const datosStr = encodeURIComponent(JSON.stringify(asoc));
+                html += `<li class='collection-item'>
+                            <a href='#' onclick="mostrarDetalle('${datosStr}')" style='color:black;'>
+                                <b>${asoc[1]}</b> <i class='material-icons right'>chevron_right</i>
+                            </a>
                          </li>`;
             });
             html += "</ul>";
             panel.innerHTML = html;
-        } catch (e) {
-            panel.innerHTML = "<p class='red-text'>Error de conexión.</p>";
-        }
+
+        } catch (e) { panel.innerHTML = "<p class='red-text'>Error de conexión.</p>"; }
     }
 
+    // MOSTRAR TODOS LOS DATOS EN PANTALLA
+    function mostrarDetalle(datosStr) {
+        const asoc = JSON.parse(decodeURIComponent(datosStr));
+        const panel = document.getElementById('resultados-busqueda');
+        
+        panel.innerHTML = `
+            <div class='card blue-grey darken-1'>
+                <div class='card-content white-text'>
+                    <span class='card-title'>Datos Completos</span>
+                    <p><b>Nombre:</b> ${asoc[1]}</p>
+                    <p><b>Celular:</b> ${asoc[2]}</p>
+                    <hr>
+                    <p><b>Estudiante:</b> ${asoc[3]}</p>
+                    <p><b>Grado:</b> ${asoc[4]} | <b>Sección:</b> ${asoc[6]}</p>
+                    <p><b>Nivel:</b> ${asoc[5]}</p>
+                </div>
+                <div class='card-action'>
+                    <a href='#' onclick='buscar()'>Regresar a la lista</a>
+                </div>
+            </div>`;
+    }
+
+    // GUARDAR NUEVO
+    async function guardar() {
+        const d = {
+            action: "nuevo",
+            nombre: document.getElementById('nom').value,
+            celular: document.getElementById('cel').value,
+            estudiante: document.getElementById('est').value,
+            grado: document.getElementById('gra').value,
+            nivel: document.getElementById('niv').value,
+            seccion: document.getElementById('sec').value
+        };
+        await fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(d) });
+        alert("Asociado Guardado");
+        location.reload();
+    }
 </script>
 </body>
 </html>
