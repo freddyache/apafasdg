@@ -48,7 +48,7 @@
     </div>
 
 <script>
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzO2xCUuVojj1m6u9lnj0tapAhr1-VynJsKJguwYfLmGozhSYUg4ZE11QN6l3br0x5X/exec"; // Reemplaza cada vez que implementes[cite: 7]
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbznRzjbgq-mGKZq_PIYHtwb51Hynq2PAAcjnAHeg1UqAbK9oRnEjraKIyRhiZ9QID4e/exec"; // REEMPLAZA CADA VEZ
 
     function ver(id) {
         document.getElementById('menu-principal').style.display = 'none';
@@ -61,15 +61,14 @@
         document.getElementById('resultados-busqueda').innerHTML = "";
     }
 
+    // BUSCAR: Quitamos 'mode: no-cors' para poder leer la respuesta[cite: 7, 8]
     async function buscar() {
         const query = document.getElementById('busq').value.toLowerCase();
         const panel = document.getElementById('resultados-busqueda');
-        if (query.length < 3) return alert("Mínimo 3 letras");
-        
+        if (query.length < 3) return alert("Escribe al menos 3 letras");
         panel.innerHTML = "Buscando...";
 
         try {
-            // Quitamos 'mode: no-cors' para poder LEER los datos de búsqueda
             const response = await fetch(SCRIPT_URL, {
                 method: 'POST',
                 body: JSON.stringify({ action: "consultar", query: query })
@@ -77,7 +76,7 @@
             const res = await response.json();
             
             if (!res.data || res.data.length === 0) {
-                panel.innerHTML = "No hay resultados.";
+                panel.innerHTML = "No se encontraron resultados.";
                 return;
             }
 
@@ -88,10 +87,11 @@
             });
             panel.innerHTML = html + "</ul>";
         } catch (e) {
-            panel.innerHTML = "Error de permisos/CORS. Revisa la implementación del Script.";
+            panel.innerHTML = "Error de conexión o permisos. Revisa la implementación del script.";
         }
     }
 
+    // GUARDAR: Aquí sí podemos usar 'no-cors'[cite: 7, 8]
     async function guardar() {
         const d = { 
             action: "nuevo", 
@@ -102,9 +102,8 @@
             nivel: document.getElementById('niv').value,
             seccion: document.getElementById('sec').value
         };
-        // Para guardar SÍ usamos no-cors porque no necesitamos leer la respuesta[cite: 7, 8]
         await fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(d) });
-        alert("Enviado");
+        alert("Enviado a Google Sheets");
         location.reload();
     }
 
@@ -116,6 +115,5 @@
             <p>Cel: ${f[2]} | Est: ${f[3]} | Grado: ${f[4]} ${f[6]}</p>
             </div><div class='card-action'><a href='#!' onclick='volver()'>Cerrar</a></div></div>`;
     }
-</script>
-</body>
+</script></body>
 </html>
