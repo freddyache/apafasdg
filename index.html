@@ -49,7 +49,7 @@
 
 <script>
     // PEGA AQUÍ TU URL DE /EXEC ACTUAL
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyObQbcKMaT2DQbkTiMdFD92DcIN_eZxruB2NsT8k2yHzc9aRvBDZI3HW1JluNUrM2v/exec";
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby1iFWODFcAEYER1VCjJOayDo-uzP_FG4PeN3bsNXzu931ZgeAcaO6zrK_SJA60f63G/exec";
 
     function ver(id) {
         document.getElementById('menu-principal').style.display = 'none';
@@ -63,24 +63,38 @@
     }
 
     async function buscar() {
-        const query = document.getElementById('busq').value.toLowerCase();
-        const panel = document.getElementById('resultados-busqueda');
-        if (query.length < 3) { alert("Escribe al menos 3 letras"); return; }
-        panel.innerHTML = "<p>Buscando...</p>";
+    const query = document.getElementById('busq').value.toLowerCase();
+    const panel = document.getElementById('resultados-busqueda');
+    if (query.length < 3) { alert("Escribe al menos 3 letras"); return; }
+    
+    panel.innerHTML = "Buscando...";
 
-        try {
-            const response = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "consultar", query: query }) });
-            const res = await response.json();
-            if (res.data.length === 0) { panel.innerHTML = "<p class='red-text'>No hay resultados.</p>"; return; }
+    try {
+        const response = await fetch(SCRIPT_URL, {
+            method: 'POST',
+            // Eliminamos mode: 'no-cors' aquí porque para buscar necesitamos LEER la respuesta
+            body: JSON.stringify({ action: "consultar", query: query })
+        });
+        
+        const res = await response.json();
+        
+        if (res.data.length === 0) {
+            panel.innerHTML = "No se encontraron resultados.";
+            return;
+        }
 
-            let html = "<ul class='collection'>";
-            res.data.forEach((asoc) => {
-                const d = encodeURIComponent(JSON.stringify(asoc));
-                html += `<li class='collection-item'><a href='#!' onclick="verFicha('${d}')">👤 ${asoc[1]}</a></li>`;
-            });
-            panel.innerHTML = html + "</ul>";
-        } catch (e) { panel.innerHTML = "<p class='red-text'>Error de conexión.</p>"; }
+        let html = "<ul class='collection'>";
+        res.data.forEach(asoc => {
+            const d = encodeURIComponent(JSON.stringify(asoc));
+            html += `<li class='collection-item'><a href='#!' onclick="verFicha('${d}')">👤 ${asoc[1]}</a></li>`;
+        });
+        panel.innerHTML = html + "</ul>";
+
+    } catch (e) {
+        console.error(e);
+        panel.innerHTML = "Error de conexión. Asegúrate de que la URL del script sea la de la ÚLTIMA implementación.";
     }
+}
 
     function verFicha(d) {
         const f = JSON.parse(decodeURIComponent(d));
