@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>APAFA - Santo Domingo de GUzman</title>
+    <title>APAFA - Santo Domingo de Guzman</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <style>
@@ -26,7 +26,6 @@
 </head>
 <body>
 
-    
     <nav>
         <div class="nav-wrapper container">
             <a href="#" class="brand-logo">APAFA SDG-YUNGAY</a>
@@ -34,6 +33,7 @@
     </nav>
 
     <div class="container">
+        <!-- MENÚ PRINCIPAL -->
         <div id="menu-principal" class="row" style="margin-top: 40px;">
             <div class="col s6 m3" onclick="ver('form-nuevo')">
                 <div class="card-menu btn-nuevo"><i class="material-icons large">person_add</i>NUEVO</div>
@@ -49,6 +49,7 @@
             </div>
         </div>
 
+        <!-- FORMULARIO NUEVO -->
         <div id="form-nuevo" class="container-form card-panel">
             <h5>Registrar Nuevo Asociado</h5>
             <div class="row">
@@ -63,18 +64,22 @@
             <button class="btn grey" onclick="volver()">Regresar</button>
         </div>
 
+        <!-- MÓDULO CONSULTA -->
         <div id="form-consulta" class="container-form card-panel">
             <h5>Módulo de Consulta</h5>
-            <p>Búsqueda rápida por Nombre o Celular:</p>
-            <input id="busq" type="text" placeholder="Ej: Juan Perez...">
-            <button class="btn blue" onclick="alert('Funcionalidad de búsqueda conectando...')">Buscar</button>
+            <p>Búsqueda por Nombre o Apellido:</p>
+            <input id="busq" type="text" placeholder="Ej: Perez...">
+            <button class="btn blue" onclick="buscar()">Buscar</button>
             <button class="btn grey" onclick="volver()">Regresar</button>
+            
+            <!-- CONTENEDOR DE RESULTADOS (Esto faltaba) -->
+            <div id="resultados-busqueda" style="margin-top:20px;"></div>
         </div>
     </div>
 
 <script>
-    // 1. REEMPLAZA ESTA URL CON TU URL DE /EXEC
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzDhPTStX4AU_KMaI20zY1r4POMpXF_nc77b-vFJbfXOYzCdAv7cLK9hVgKakuoZg3v/exec";
+    // 1. REEMPLAZA ESTA URL CON TU URL DE /EXEC ACTUAL
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzqhnxjvDy0vowkXs-IbEyAhY8TIC3JQU_ghYOCsJ3JNpeqarOT__Xhdz98UBieIgt0/exec";
 
     function ver(id) {
         document.getElementById('menu-principal').style.display = 'none';
@@ -87,13 +92,12 @@
         document.getElementById('resultados-busqueda').innerHTML = "";
     }
 
-    // BUSCAR Y MOSTRAR RELACIÓN
     async function buscar() {
         const query = document.getElementById('busq').value.toLowerCase();
         const panel = document.getElementById('resultados-busqueda');
         
-        if (query.length < 3) { alert("Escribe al menos 3 letras del apellido"); return; }
-        panel.innerHTML = "<p>Buscando en la hoja de Google...</p>";
+        if (query.length < 3) { alert("Escribe al menos 3 letras"); return; }
+        panel.innerHTML = "<p>Buscando en Google Sheets...</p>";
 
         try {
             const response = await fetch(SCRIPT_URL, {
@@ -103,7 +107,7 @@
             const res = await response.json();
             
             if (res.data.length === 0) {
-                panel.innerHTML = "<p class='red-text'>No se encontraron coincidencias.</p>";
+                panel.innerHTML = "<p class='red-text'>No se encontraron resultados.</p>";
                 return;
             }
 
@@ -118,10 +122,11 @@
             });
             html += "</ul>";
             panel.innerHTML = html;
-        } catch (e) { panel.innerHTML = "<p class='red-text'>Error de conexión con el script.</p>"; }
+        } catch (e) { 
+            panel.innerHTML = "<p class='red-text'>Error de conexión. Revisa la URL del script.</p>"; 
+        }
     }
 
-    // MOSTRAR TODOS LOS DATOS
     function verFicha(datos) {
         const fila = JSON.parse(decodeURIComponent(datos));
         document.getElementById('resultados-busqueda').innerHTML = `
@@ -150,7 +155,7 @@
             seccion: document.getElementById('sec').value
         };
         await fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(d) });
-        alert("Guardado en Google Sheets");
+        alert("Guardado en Google Sheets con éxito");
         location.reload();
     }
 </script>
