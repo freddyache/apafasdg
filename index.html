@@ -48,8 +48,7 @@
     </div>
 
 <script>
-    // PEGA AQUÍ TU URL DE /EXEC ACTUAL
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyAVSS8wG4BH7zQH0gJCKppHOuzzcb6Pi6-iGpyrScPsdHI6Gx8U6WpSTHIKjgEQXyt/exec";
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzO2xCUuVojj1m6u9lnj0tapAhr1-VynJsKJguwYfLmGozhSYUg4ZE11QN6l3br0x5X/exec"; // Reemplaza cada vez que implementes[cite: 7]
 
     function ver(id) {
         document.getElementById('menu-principal').style.display = 'none';
@@ -63,54 +62,59 @@
     }
 
     async function buscar() {
-    const query = document.getElementById('busq').value.toLowerCase();
-    const panel = document.getElementById('resultados-busqueda');
-    if (query.length < 3) { alert("Escribe al menos 3 letras"); return; }
-    
-    panel.innerHTML = "Buscando...";
+        const query = document.getElementById('busq').value.toLowerCase();
+        const panel = document.getElementById('resultados-busqueda');
+        if (query.length < 3) return alert("Mínimo 3 letras");
+        
+        panel.innerHTML = "Buscando...";
 
-    try {
-        const response = await fetch(SCRIPT_URL, {
-            method: 'POST',
-            // Eliminamos mode: 'no-cors' aquí porque para buscar necesitamos LEER la respuesta
-            body: JSON.stringify({ action: "consultar", query: query })
-        });
-        
-        const res = await response.json();
-        
-        if (res.data.length === 0) {
-            panel.innerHTML = "No se encontraron resultados.";
-            return;
+        try {
+            // Quitamos 'mode: no-cors' para poder LEER los datos de búsqueda
+            const response = await fetch(SCRIPT_URL, {
+                method: 'POST',
+                body: JSON.stringify({ action: "consultar", query: query })
+            });
+            const res = await response.json();
+            
+            if (!res.data || res.data.length === 0) {
+                panel.innerHTML = "No hay resultados.";
+                return;
+            }
+
+            let html = "<ul class='collection'>";
+            res.data.forEach(asoc => {
+                const d = encodeURIComponent(JSON.stringify(asoc));
+                html += `<li class='collection-item'><a href='#!' onclick="verFicha('${d}')">👤 ${asoc[1]}</a></li>`;
+            });
+            panel.innerHTML = html + "</ul>";
+        } catch (e) {
+            panel.innerHTML = "Error de permisos/CORS. Revisa la implementación del Script.";
         }
-
-        let html = "<ul class='collection'>";
-        res.data.forEach(asoc => {
-            const d = encodeURIComponent(JSON.stringify(asoc));
-            html += `<li class='collection-item'><a href='#!' onclick="verFicha('${d}')">👤 ${asoc[1]}</a></li>`;
-        });
-        panel.innerHTML = html + "</ul>";
-
-    } catch (e) {
-        console.error(e);
-        panel.innerHTML = "Error de conexión. Asegúrate de que la URL del script sea la de la ÚLTIMA implementación.";
     }
-}
+
+    async function guardar() {
+        const d = { 
+            action: "nuevo", 
+            nombre: document.getElementById('nom').value, 
+            celular: document.getElementById('cel').value,
+            estudiante: document.getElementById('est').value,
+            grado: document.getElementById('gra').value,
+            nivel: document.getElementById('niv').value,
+            seccion: document.getElementById('sec').value
+        };
+        // Para guardar SÍ usamos no-cors porque no necesitamos leer la respuesta[cite: 7, 8]
+        await fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(d) });
+        alert("Enviado");
+        location.reload();
+    }
 
     function verFicha(d) {
         const f = JSON.parse(decodeURIComponent(d));
         document.getElementById('resultados-busqueda').innerHTML = `
             <div class='card blue-grey darken-1'><div class='card-content white-text'>
-                <span class='card-title'>Detalles</span>
-                <p><b>Nombre:</b> ${f[1]} | <b>Cel:</b> ${f[2]}</p>
-                <p><b>Estudiante:</b> ${f[3]} | <b>Grado:</b> ${f[4]} ${f[6]}</p>
+            <span class='card-title'>${f[1]}</span>
+            <p>Cel: ${f[2]} | Est: ${f[3]} | Grado: ${f[4]} ${f[6]}</p>
             </div><div class='card-action'><a href='#!' onclick='volver()'>Cerrar</a></div></div>`;
-    }
-
-    async function guardar() {
-        const d = { action: "nuevo", nombre: document.getElementById('nom').value, celular: document.getElementById('cel').value, estudiante: document.getElementById('est').value, grado: document.getElementById('gra').value, nivel: document.getElementById('niv').value, seccion: document.getElementById('sec').value };
-        await fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(d) });
-        alert("Guardado correctamente");
-        location.reload();
     }
 </script>
 </body>
