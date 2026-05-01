@@ -108,12 +108,31 @@
     }
 
     function verFicha(d) {
-        const f = JSON.parse(decodeURIComponent(d));
-        document.getElementById('resultados-busqueda').innerHTML = `
-            <div class='card blue-grey darken-1'><div class='card-content white-text'>
-            <span class='card-title'>${f[1]}</span>
-            <p>Cel: ${f[2]} | Est: ${f[3]} | Grado: ${f[4]} ${f[6]}</p>
-            </div><div class='card-action'><a href='#!' onclick='volver()'>Cerrar</a></div></div>`;
-    }
+    // Decodificamos los datos recibidos de la búsqueda
+    const f = JSON.parse(decodeURIComponent(d));
+    const panel = document.getElementById('resultados-busqueda');
+
+    // Construimos la tarjeta con los datos ordenados por filas
+    panel.innerHTML = `
+        <div class='card blue-grey darken-1'>
+            <div class='card-content white-text' style='text-align: left;'>
+                <span class='card-title' style='border-bottom: 1px solid #ccc; padding-bottom: 10px;'>
+                    ${f[1]} <!-- Nombre del Asociado -->
+                </span>
+                
+                <p style='margin-top: 15px;'><b>Celular:</b> ${f[2]}</p>
+                
+                <h6 style='margin-top: 20px; color: #ffeb3b; border-bottom: 1px solid #555;'>Datos del Hijo:</h6>
+                
+                <p style='margin-top: 10px;'><b>Nombre:</b> ${f[3]}</p>
+                <p><b>Grado:</b> ${f[4]}</p>
+                <p><b>Sección:</b> ${f[6]}</p>
+                <p><b>Nivel:</b> ${f[5]}</p>
+            </div>
+            <div class='card-action'>
+                <a href='#!' onclick='volver()' style='color: #ff9800;'>CERRAR</a>
+            </div>
+        </div>`;
+}
 </script></body>
 </html>
